@@ -6,6 +6,10 @@ contract DelegateRegistry {
     // The value is the address of the delegate
     mapping(address delegator => mapping(bytes32 id => address delegate)) public delegation;
 
+    // The first key is the delegate and the second key an id.
+    // The value is the number of delegations to this delegate for this id.
+    mapping(address delegate => mapping(bytes32 id => uint256 count)) public counter;
+
     // Using these events it is possible to process the events to build up reverse lookups.
     // The indices allow it to be very partial about how to build this lookup (e.g. only for a specific delegate).
     event SetDelegate(address indexed delegator, bytes32 indexed id, address indexed delegate);
@@ -23,8 +27,10 @@ contract DelegateRegistry {
 
         // Update delegation mapping
         delegation[msg.sender][id] = delegate;
+        counter[delegate][id] += 1;
 
         if (currentDelegate != address(0)) {
+            counter[currentDelegate][id] -= 1;
             emit ClearDelegate(msg.sender, id, currentDelegate);
         }
 
@@ -40,6 +46,7 @@ contract DelegateRegistry {
 
         // update delegation mapping
         delegation[msg.sender][id] = address(0);
+        counter[currentDelegate][id] -= 1;
 
         emit ClearDelegate(msg.sender, id, currentDelegate);
     }
