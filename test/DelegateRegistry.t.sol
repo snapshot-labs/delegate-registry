@@ -14,37 +14,46 @@ contract CounterTest is Test {
     }
 
     function test_Delegate() public {
-        assertEq(registry.counter(delegator, id), 0);
+        assertEq(registry.counter(id), 0);
         registry.setDelegate(id, delegator);
 
-        assertEq(registry.counter(delegator, id), 1);
+        assertEq(registry.counter(id), 1);
+    }
+
+    function test_Redelegate() public {
+        assertEq(registry.counter(id), 0);
+        registry.setDelegate(id, delegator);
+
+        registry.setDelegate(id, address(0x22222));
+
+        assertEq(registry.counter(id), 1);
     }
 
     function test_DelegateTwo() public {
-        assertEq(registry.counter(delegator, id), 0);
+        assertEq(registry.counter(id), 0);
         registry.setDelegate(id, delegator);
 
         vm.prank(address(123));
         registry.setDelegate(id, delegator);
 
-        assertEq(registry.counter(delegator, id), 2);
+        assertEq(registry.counter(id), 2);
     }
 
     function test_ClearDelegate() public {
-        assertEq(registry.counter(delegator, id), 0);
+        assertEq(registry.counter(id), 0);
         registry.setDelegate(id, delegator);
 
         vm.prank(address(123));
         registry.setDelegate(id, delegator);
 
-        assertEq(registry.counter(delegator, id), 2);
+        assertEq(registry.counter(id), 2);
 
         registry.clearDelegate(id);
-        assertEq(registry.counter(delegator, id), 1);
+        assertEq(registry.counter(id), 1);
 
         vm.prank(address(123));
         registry.clearDelegate(id);
-        assertEq(registry.counter(delegator, id), 0);
+        assertEq(registry.counter(id), 0);
     }
 
     function test_ClearNullDelegate() public {
