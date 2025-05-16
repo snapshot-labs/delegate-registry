@@ -11,6 +11,11 @@ contract DelegateRegistry {
     mapping(address delegator => mapping(bytes32 id => address delegate)) public delegation;
 
     // The first key is the delegate and the second key an id.
+    // The value is the number of delegations to this delegate for this id.
+    // This is used by Herodotus.
+    mapping(address delegate => mapping(bytes32 id => uint256 count)) public counter;
+
+    // The first key is the delegate and the second key an id.
     // The value is a set of delegators
     // This is used to build up a reverse lookup of delegators for a specific delegate.
     // The reverse lookup is not used in the contract itself, but it is useful for external
@@ -35,9 +40,11 @@ contract DelegateRegistry {
         // Update delegation mapping
         delegation[msg.sender][id] = delegate;
         _reverseDelegation[delegate][id].add(msg.sender);
+        counter[delegate][id] += 1;
 
         if (currentDelegate != address(0)) {
             _reverseDelegation[currentDelegate][id].remove(msg.sender);
+            counter[currentDelegate][id] -= 1;
             emit ClearDelegate(msg.sender, id, currentDelegate);
         }
 
@@ -53,6 +60,7 @@ contract DelegateRegistry {
 
         // update delegation mapping
         delegation[msg.sender][id] = address(0);
+        counter[currentDelegate][id] -= 1;
         _reverseDelegation[currentDelegate][id].remove(msg.sender);
 
         emit ClearDelegate(msg.sender, id, currentDelegate);
