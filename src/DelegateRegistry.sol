@@ -68,7 +68,7 @@ contract DelegateRegistry {
     function isDelegator(address delegate, bytes32 id, address delegator) external view returns (bool) {
         return _reverseDelegation[delegate][id].contains(delegator);
     }
-    
+
     /**
      * @notice Get the number of delegators for a specific delegate and ID
      * @param delegate The delegate address
@@ -78,7 +78,7 @@ contract DelegateRegistry {
     function delegatorCount(address delegate, bytes32 id) external view returns (uint256) {
         return _reverseDelegation[delegate][id].length();
     }
-    
+
     /**
      * @notice Get a delegator by index for a specific delegate and ID
      * @param delegate The delegate address
@@ -99,11 +99,11 @@ contract DelegateRegistry {
     function getDelegators(address delegate, bytes32 id) external view returns (address[] memory) {
         uint256 count = _reverseDelegation[delegate][id].length();
         address[] memory result = new address[](count);
-        
+
         for (uint256 i = 0; i < count; i++) {
             result[i] = _reverseDelegation[delegate][id].at(i);
         }
-        
+
         return result;
     }
 }
