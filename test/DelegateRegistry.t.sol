@@ -4,7 +4,7 @@ pragma solidity ^0.8.29;
 import {Test, console} from "forge-std/Test.sol";
 import {DelegateRegistry} from "../src/DelegateRegistry.sol";
 
-contract CounterTest is Test {
+contract DelegateTest is Test {
     DelegateRegistry public registry;
     bytes32 id = bytes32(keccak256(abi.encode("test")));
     address delegate = address(0x111);
@@ -18,7 +18,7 @@ contract CounterTest is Test {
         registry.setDelegate(id, delegate);
 
         assertEq(registry.delegatorCount(delegate, id), 1);
-        assertEq(registry.counter(delegate, id), 1);
+        assertEq(registry.counter(id), 1);
         address[] memory delegators = registry.getDelegators(delegate, id);
         assertEq(delegators.length, 1);
         assertEq(delegators[0], address(this));
@@ -32,7 +32,7 @@ contract CounterTest is Test {
         registry.setDelegate(id, delegate);
 
         assertEq(registry.delegatorCount(delegate, id), 2);
-        assertEq(registry.counter(delegate, id), 2);
+        assertEq(registry.counter(id), 2);
         assertEq(true, registry.isDelegator(delegate, id, address(this)));
         assertEq(true, registry.isDelegator(delegate, id, address(123)));
     }
@@ -42,22 +42,30 @@ contract CounterTest is Test {
         registry.setDelegate(id, delegate);
         assertEq(true, registry.isDelegator(delegate, id, address(this)));
 
-        vm.prank(address(123));
-        registry.setDelegate(id, delegate);
-        assertEq(true, registry.isDelegator(delegate, id, address(123)));
+        address delegate2 = address(0x222);
+        registry.setDelegate(id, delegate2);
+        assertEq(false, registry.isDelegator(delegate, id, address(this)));
+        assertEq(true, registry.isDelegator(delegate2, id, address(this)));
+        assertEq(registry.counter(id), 1);
 
-        assertEq(registry.delegatorCount(delegate, id), 2);
-        assertEq(registry.counter(delegate, id), 2);
+        vm.prank(address(0x123));
+        registry.setDelegate(id, delegate);
+        assertEq(true, registry.isDelegator(delegate, id, address(0x123)));
+
+        assertEq(registry.delegatorCount(delegate, id), 1);
+        assertEq(registry.delegatorCount(delegate2, id), 1);
+        assertEq(registry.counter(id), 2);
 
         registry.clearDelegate(id);
         assertEq(registry.delegatorCount(delegate, id), 1);
-        assertEq(registry.counter(delegate, id), 1);
+        assertEq(registry.delegatorCount(delegate2, id), 0);
+        assertEq(registry.counter(id), 1);
         assertEq(false, registry.isDelegator(delegate, id, address(this)));
 
-        vm.prank(address(123));
+        vm.prank(address(0x123));
         registry.clearDelegate(id);
         assertEq(registry.delegatorCount(delegate, id), 0);
-        assertEq(false, registry.isDelegator(delegate, id, address(123)));
+        assertEq(false, registry.isDelegator(delegate, id, address(0x123)));
     }
 
     function test_ClearNullDelegate() public {
